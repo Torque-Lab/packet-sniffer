@@ -56,12 +56,10 @@ private:
     void process_packet(const struct pcap_pkthdr* header, const u_char* packet);
     static void packet_handler(u_char* user, const struct pcap_pkthdr* header, const u_char* packet);
     void display_payload(const uint8_t* payload, uint32_t payload_size) const;
-    void display_payload_hex_ascii(const uint8_t* payload, uint32_t payload_size) const;
-    
     SnifferConfig config_;
     pcap_t* handle_{nullptr};
     char errbuf_[PCAP_ERRBUF_SIZE];
-    std::string device_name_;  // Store the device name for filter operations
+    std::string device_name_;  
     volatile bool is_running_{false};
     Stats stats_;
     PacketCallback packet_callback_;

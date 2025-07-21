@@ -39,12 +39,14 @@ void print_usage(const char* program_name) {
               << "  -u              Toggle UDP packets (default: on)\n"
               << "  -c              Toggle ICMP packets (default: on)\n"
               << "  -e              Toggle Ethernet frames (default: off)\n"
+              << "  -H              Show human-readable strings in payload\n"
               << "  -v              Verbose output\n"
               << "  -h              Show this help message\n"
               << "\nExamples:\n"
               << "  " << program_name << " -i eth0 'tcp port 80'\n"
               << "  " << program_name << " -p 22,80,443\n"
               << "  " << program_name << " -s 192.168.1.1 -d 8.8.8.8\n"
+              << "  " << program_name << " -H -p 80     # Show human-readable strings in HTTP traffic\n"
               << std::endl;
 }
 
@@ -79,9 +81,10 @@ int main(int argc, char* argv[]) {
     config.filter_udp = false;
     config.filter_icmp = false;
     config.filter_ethernet = false;
+    config.human_readable = false;  // Default to off
     
     // Parse command line options
-    while ((opt = getopt(argc, argv, "i:f:p:s:d:tucevh")) != -1) {
+    while ((opt = getopt(argc, argv, "i:f:p:s:d:tucevhH")) != -1) {
         switch (opt) {
             case 'i':
                 config.interface = optarg;
@@ -112,6 +115,9 @@ int main(int argc, char* argv[]) {
                 break;
             case 'v':
                 config.verbose = true;
+                break;
+            case 'H':
+                config.human_readable = true;  // Enable human-readable output
                 break;
             case 'h':
             case '?':
@@ -152,7 +158,7 @@ int main(int argc, char* argv[]) {
     }
     
     // Debug output for configuration
-    std::cout << "=== Debug: Configuration ===" << std::endl;
+    std::cout << " Configuration ===" << std::endl;
     std::cout << "Verbose mode: " << (config.verbose ? "ON" : "OFF") << std::endl;
     std::cout << "Interface: " << (config.interface.empty() ? "[auto-detect]" : config.interface) << std::endl;
     std::cout << "Filter: " << (config.filter.empty() ? "[none]" : config.filter) << std::endl;
@@ -212,11 +218,18 @@ int main(int argc, char* argv[]) {
                     if (layers[i]->get_payload_size() > 0) {
                         std::cout << "Payload (" << layers[i]->get_payload_size() << " bytes):" << std::endl;
                         try {
-                            std::cout << packet_sniffer::HexDump::format(
-                                layers[i]->get_payload(),
-                                std::min<size_t>(layers[i]->get_payload_size(), 128),
-                                true
-                            ) << std::endl;
+                            if (config.human_readable) {
+                                std::cout << packet_sniffer::HexDump::format_human(
+                                    layers[i]->get_payload(),
+                                    std::min<size_t>(layers[i]->get_payload_size(), 1024)  // Increased limit for human-readable output
+                                ) << std::endl;
+                            } else {
+                                std::cout << packet_sniffer::HexDump::format(
+                                    layers[i]->get_payload(),
+                                    std::min<size_t>(layers[i]->get_payload_size(), 128),
+                                    true
+                                ) << std::endl;
+                            }
                         } catch (const std::exception& e) {
                             std::cerr << "Error formatting payload: " << e.what() << std::endl;
                         }

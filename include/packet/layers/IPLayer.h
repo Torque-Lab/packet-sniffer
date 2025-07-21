@@ -14,7 +14,6 @@ public:
         UDP = 17,
         UNKNOWN = 255
     };
-    
     void parse(const uint8_t* data, uint32_t size) override;
     std::string to_string() const override;
     

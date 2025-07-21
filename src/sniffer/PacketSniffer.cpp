@@ -8,7 +8,7 @@
 #include <pcap.h>
 #include <cstring>
 #include <stdexcept>
-#include <iostream>  // Added for std::cerr and std::endl
+#include <iostream>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
@@ -85,10 +85,10 @@ void PacketSniffer::stop() {
 
 bool PacketSniffer::initialize() {
     const char* device = nullptr;
-    std::string device_name;  // Store the device name if we need to allocate it
+    std::string device_name;  
     
     if (config_.interface.empty()) {
-        // Use pcap_findalldevs instead of deprecated pcap_lookupdev
+        
         pcap_if_t* alldevs;
         if (pcap_findalldevs(&alldevs, errbuf_) == -1) {
             std::cerr << "Could not find any network devices: " << errbuf_ << std::endl;
@@ -98,19 +98,17 @@ bool PacketSniffer::initialize() {
             std::cerr << "No network devices found" << std::endl;
             return false;
         }
-        device_name = alldevs->name;  // Store the device name
+        device_name = alldevs->name;  
         device = device_name.c_str();
         pcap_freealldevs(alldevs);
     } else {
         device = config_.interface.c_str();
     }
     
-    // Store the device name in the class member for later use
     if (device) {
         device_name_ = device;
     }
     
-    // Open the capture device
     handle_ = pcap_open_live(device, BUFSIZ, config_.promiscuous ? 1 : 0, 
                             config_.timeout_ms, errbuf_);
     if (!handle_) {
@@ -162,7 +160,6 @@ bool PacketSniffer::set_filter(const std::string& filter) {
         return false;
     }
     
-    // Apply the filter
     if (pcap_setfilter(handle_, &fp) == -1) {
         std::cerr << "Couldn't install filter " << full_filter 
                  << ": " << pcap_geterr(handle_) << std::endl;
@@ -192,50 +189,6 @@ std::vector<std::string> PacketSniffer::list_interfaces() {
     pcap_freealldevs(alldevs);
     return interfaces;
 }
-void PacketSniffer::display_payload_hex_ascii(const uint8_t* payload, uint32_t payload_size) const {
-    if (!payload || payload_size == 0) {
-        std::cout << "No payload data to display.\n";
-        return;
-    }
-
-    const int bytes_per_line = 16;
-    uint32_t offset = 0;
-    
-    while (offset < payload_size) {
-        // Print offset
-        std::cout << std::hex << std::setw(8) << std::setfill('0') << offset << "  ";
-        
-        // Print hex bytes
-        for (int i = 0; i < bytes_per_line; ++i) {
-            if (i == 8) std::cout << " ";  // Extra space after 8 bytes
-            if (offset + i < payload_size) {
-                std::cout << std::hex << std::setw(2) << std::setfill('0') 
-                         << static_cast<int>(payload[offset + i]) << " ";
-            } else {
-                std::cout << "   ";  // Pad with spaces if needed
-            }
-        }
-        
-        std::cout << " ";
-        
-        // Print ASCII representation
-        for (int i = 0; i < bytes_per_line; ++i) {
-            if (offset + i >= payload_size) break;
-            
-            uint8_t byte = payload[offset + i];
-            if (byte >= 32 && byte <= 126) {
-                std::cout << static_cast<char>(byte);
-            } else {
-                std::cout << ".";
-            }
-        }
-        
-        std::cout << "\n";
-        offset += bytes_per_line;
-    }
-    std::cout << std::dec;  // Reset to decimal output
-}
-
 void PacketSniffer::process_packet(const struct pcap_pkthdr* header, const u_char* packet) {
     if (!is_running_ || !packet_callback_) {
         std::cerr << "DEBUG: Not processing packet - " 
@@ -337,17 +290,6 @@ void PacketSniffer::process_packet(const struct pcap_pkthdr* header, const u_cha
         }
         // If the packet passes all filters, process it
 if (should_process) {
-    std::cout << "Calling packet callback" << std::endl;
-    
-    // Display payload in hex and ASCII
-    if (auto ip = pkt.get_layer<IPLayer>()) {
-        std::cout<<"*==============================*\n";
-        std::cout << "\n=== Payload (Hex and ASCII) ===\n";
-        display_payload_hex_ascii(ip->get_payload(), ip->get_payload_size());
-        std::cout << "Displaying payload in hex and ASCII completed\n";
-        std::cout<<"*==============================*\n";
-    }
-    
     if (packet_callback_) {
         std::cout<<"*==============================*\n";
         std::cout << "Displaying packet bytes completed\n";

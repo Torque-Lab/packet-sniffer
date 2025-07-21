@@ -30,6 +30,7 @@ struct SnifferConfig {
     
     // Output options
     bool verbose = false;           // Show detailed output
+    bool human_readable = false;    // Show human-readable strings in payload
     bool show_payload = true;       // Show packet payload
     bool show_hex = true;           // Show hex dump of payload
     bool show_ascii = true;         // Show ASCII representation of payload
