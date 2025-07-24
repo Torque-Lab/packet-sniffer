@@ -71,7 +71,7 @@ sudo yum install -y cmake3 libpcap-devel
 ### Basic Usage
 
 ```bash
-# Run with default settings (requires root privileges)
+# Run with default settings (requires Adminstrative privileges)
 sudo ./packet_sniffer
 
 # Capture on a specific interface
@@ -92,10 +92,10 @@ Options:
   -p <ports>      Comma-separated list of ports to filter (e.g., '80,443,8080')
   -s <ip>         Filter by source IP address
   -d <ip>         Filter by destination IP address
-  -t              Toggle TCP packets (default: on)
-  -u              Toggle UDP packets (default: on)
-  -c              Toggle ICMP packets (default: on)
-  -e              Toggle Ethernet frames (default: off)
+  -t              Toggle TCP packets 
+  -u              Toggle UDP packets
+  -c              Toggle ICMP packets 
+  -e              Toggle Ethernet frames
   -H              Show human-readable strings in payload
   -v              Enable verbose output
   -h              Show this help message
