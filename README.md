@@ -46,7 +46,7 @@ sudo yum install -y cmake3 libpcap-devel
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/packet-sniffer.git
+   git clone https://github.com/Torque-Lab/packet-sniffer.git
    cd packet-sniffer
    ```
 
